@@ -197,7 +197,8 @@ func stream(lineup *lineup) gin.HandlerFunc {
 
 			log.Infoln("Remuxing stream with ffmpeg")
 
-			run := exec.Command("ffmpeg", "-i", channelURI, "-codec", "copy", "-f", "mpegts", "pipe:1")
+			//run := exec.Command("ffmpeg", "-i", channelURI, "-codec", "copy", "-f", "mpegts", "pipe:1")
+			run := exec.Command("ffmpeg", "-hwaccel", "vaapi", "-hwaccel_device", "/dev/dri/renderD128", "-hwaccel_output_format", "vaapi", "-i", channelURI, "-vf", "deinterlace_vaapi=rate=field:auto=1", "-c:v", "h264_vaapi", "-c:a", "copy", "-map", "0", "-map", "-0:s", "-f", "mpegts", "pipe:1")
 			ffmpegout, err := run.StdoutPipe()
 			if err != nil {
 				log.WithError(err).Errorln("StdoutPipe Error")
