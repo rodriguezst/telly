@@ -4,17 +4,18 @@
 FROM golang:alpine AS builder
 
 # Install git
-RUN apk --update add git
+RUN apk --update add git make gcc libc-dev
 
 COPY ./ /app
 WORKDIR /app
 
 # Fetch dependencies.
 # Using go get.
-RUN go get -d -v
+RUN go get -d -v && \
+    go get -u github.com/prometheus/promu
 
 # Build the binary.
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/app
+RUN make
 
 ############################
 # STEP 2 build a small image
@@ -22,6 +23,6 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/a
 
 FROM jrottenberg/ffmpeg:4.2-vaapi
 # Copy our static executable.
-COPY --from=builder /go/bin/app /app
+COPY --from=builder /app/telly /app
 EXPOSE 6077
 ENTRYPOINT ["/app"]
