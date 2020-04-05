@@ -1,0 +1,16 @@
+language: go
+
+services:
+  - docker
+
+before_install:
+  - docker build -t rodriguezst/telly:scratch .
+  - docker build -f Dockerfile.ffmpeg -t rodriguezst/telly:ffmpeg-vaapi .
+  - docker run --name telly-default -d -p 127.0.0.1:6077:6077 rodriguezst/telly:scratch
+  - docker run --name telly-ffmpeg-vaapi -d -p 127.0.0.1:6078:6077 rodriguezst/telly:ffmpeg-vaapi
+  - docker ps -a
+
+script:
+  - docker exec -it telly-ffmpeg-vaapi ffmpeg -version
+  - curl 127.0.0.1:6077
+  - curl 127.0.0.1:6078
